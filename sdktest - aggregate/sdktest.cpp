@@ -7,11 +7,9 @@ int main(int argc, char** argv)
 {
     Zcan* CAN = new Zcan;
     //CAN->CheckAllBuses();
-    DEVICE_HANDLE dhandle = ZCAN_OpenDevice(12, 0, 0);
-    CHANNEL_HANDLE chHandle = CAN->InitCan(dhandle);
-    ZCAN_Transmit_Data* packet =  CAN->SendCanMessage(chHandle);
-    ZCAN_Receive_Data* receive = CAN->ReceiveCanMessage(chHandle);
-    std::cout << receive->frame.data << std::endl;
+    CAN->TestSendReceiveOnBus(12);
+    CAN->TestSendReceiveOnBus(25);
+    CAN->TestSendReceiveOnBus(26);
     //CommandLineTestRunner::RunAllTests(argc, argv);
     return 0;
 }

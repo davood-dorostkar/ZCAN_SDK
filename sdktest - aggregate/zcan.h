@@ -11,5 +11,6 @@ public:
 	ZCAN_Transmit_Data* SendCanMessage(CHANNEL_HANDLE chHandle);
 	void CheckAllBuses();
 	ZCAN_Receive_Data* ReceiveCanMessage(CHANNEL_HANDLE chHandle);
+	void TestSendReceiveOnBus(int bus);
 };
 

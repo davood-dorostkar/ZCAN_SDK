@@ -22,7 +22,9 @@ ZCAN_Transmit_Data* Zcan::SendCanMessage(CHANNEL_HANDLE chHandle)
 	BYTE data[] = { 1, 2, 3, 4, 5, 6, 7, 8 };
 	memcpy(frame.frame.data, data, sizeof(data)); 
     UINT sent = ZCAN_Transmit(chHandle, &frame, 8);
-    std::cout << sent << std::endl;
+    uintptr_t intptr = (uintptr_t)chHandle;
+    unsigned long channelValue = (intptr >> 16) & 0xFF;
+    std::cout << "Successfully sent " << sent << " bytes on channel 0x" << std::hex << channelValue << std::endl;
 	return &frame;
 }
 
@@ -38,6 +40,15 @@ ZCAN_Receive_Data* Zcan::ReceiveCanMessage(CHANNEL_HANDLE chHandle)
             "recv can id: 0x" << std::hex << data[i].frame.can_id << std::endl;
     }
     return data;
+}
+
+void Zcan::TestSendReceiveOnBus(int bus)
+{
+    DEVICE_HANDLE dhandle = ZCAN_OpenDevice(bus, 0, 0);
+    CHANNEL_HANDLE chHandle = this->InitCan(dhandle);
+    ZCAN_Transmit_Data* packet = this->SendCanMessage(chHandle);
+    ZCAN_Receive_Data* receive = this->ReceiveCanMessage(chHandle);
+    std::cout << receive->frame.data << std::endl;
 }
 
 void Zcan::CheckAllBuses()
