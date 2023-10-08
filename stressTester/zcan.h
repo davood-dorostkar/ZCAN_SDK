@@ -12,9 +12,9 @@ public:
 	void CheckAllBuses();
 	UINT SendSampleMessage(CHANNEL_HANDLE chHandle);
 	UINT SendMessage(CHANNEL_HANDLE chHandle, const BYTE* data, int size);
+	UINT SendMessage(CHANNEL_HANDLE chHandle, const BYTE* data);
 	ZCAN_Receive_Data* ReceiveCanMessage(CHANNEL_HANDLE chHandle);
-	void TestSendReceiveOnBus(int bus);
-	void SendReceiveOnBus(int bus, const BYTE* data);
+	void SampleSendReceiveOnBus(int bus);
 	void SendReceiveOnBus(int bus, const BYTE* data, int size);
 };
 
