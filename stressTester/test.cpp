@@ -9,6 +9,7 @@ TEST_GROUP(connectivity)
     CHANNEL_HANDLE chHandle;
     ZCAN zcan;
     int deviceID = 12;
+    BYTE sampleData[8] = { 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7, 0xF8 };
     void setup()
     {
         CAN = ZCAN_OpenDevice(deviceID, 0, 0);
@@ -25,7 +26,6 @@ TEST(connectivity, 01_open_device)
 {
     CHECK_FALSE(INVALID_DEVICE_HANDLE == CAN);
 }
-
 
 IGNORE_TEST(connectivity, 02_check_online)
 {
@@ -53,44 +53,89 @@ TEST(connectivity, 05_start_can)
     CHECK_EQUAL(STATUS_OK, ZCAN_StartCAN(chHandle));
 }
 
-TEST(connectivity, 06_make_frame)
+TEST(connectivity, 06_close_device)
 {
-    BYTE data[] = { 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7, 0xF8 };
-    ZCAN_Transmit_Data frame = zcan.MakeFrame(data, 8);
-    CHECK_EQUAL(frame.frame.can_dlc, 8);
-    MEMCMP_EQUAL(data, frame.frame.data, 8);
+    CHECK_EQUAL(STATUS_OK ,ZCAN_CloseDevice(CAN));
 }
 
-TEST(connectivity, 07_send_sample)
+TEST_GROUP(sdk_send_receive)
+{
+    DEVICE_HANDLE CAN;
+    CHANNEL_HANDLE chHandle;
+    ZCAN zcan;
+    int deviceID = 12;
+    BYTE sampleData[8] = { 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7, 0xF8 };
+    void setup()
+    {
+        CAN = ZCAN_OpenDevice(deviceID, 0, 0);
+    }
+    void teardown()
+    {
+        ZCAN_CloseDevice(CAN);
+        CAN = INVALID_DEVICE_HANDLE;
+        chHandle = INVALID_CHANNEL_HANDLE;
+    }
+};
+
+TEST(sdk_send_receive, 01_make_frame)
+{
+    ZCAN_Transmit_Data frame = zcan.MakeFrame(sampleData, 8);
+    CHECK_EQUAL(frame.frame.can_dlc, 8);
+    MEMCMP_EQUAL(sampleData, frame.frame.data, 8);
+}
+
+TEST(sdk_send_receive, 02_send_sample)
 {
     uint8_t baudStatus = ZCAN_SetValue(CAN, "0/baud_rate", "500000");
     chHandle = CAN;
     ZCAN_StartCAN(chHandle);
-    UINT num = zcan.SendSampleMessage(chHandle);
-    //CHECK_EQUAL(8, zcan.SendSampleMessage(chHandle));
+    CHECK_EQUAL(8, zcan.SendSampleMessage(chHandle));
 }
 
-//IGNORE_TEST(connectivity, 06_transmit)
-//{
-//    uint8_t baudStatus = ZCAN_SetValue(CAN, "0/baud_rate", "500000");
-//    chHandle = CAN;
-//    ZCAN_StartCAN(chHandle);
-//    ZCAN_Transmit_Data* frame = zcan.SendSampleMessage(chHandle);
-//    CHECK_EQUAL(1, ZCAN_Transmit(chHandle, frame, 1));
-//}
-//
-//IGNORE_TEST(connectivity, 07_receive)
-//{
-//    uint8_t baudStatus = ZCAN_SetValue(CAN, "0/baud_rate", "1000000");
-//    chHandle = (void*)1;
-//    ZCAN_StartCAN(chHandle);
-//    ZCAN_Transmit_Data* frame = zcan.SendSampleMessage(chHandle);
-//    ZCAN_Transmit(chHandle, frame, 1);
-//    ZCAN_Receive_Data receiveFrame;
-//    CHECK_EQUAL(1, ZCAN_Receive(chHandle, &receiveFrame, 8));
-//}
-//
-//IGNORE_TEST(connectivity, 08_close_device)
-//{
-//    CHECK_EQUAL(1 ,ZCAN_CloseDevice(CAN));
-//}
+TEST(sdk_send_receive, 03_transmit)
+{
+    uint8_t baudStatus = ZCAN_SetValue(CAN, "0/baud_rate", "500000");
+    chHandle = CAN;
+    ZCAN_StartCAN(chHandle);
+    ZCAN_Transmit_Data frame = zcan.MakeFrame(sampleData, 8);
+    CHECK_EQUAL(8, ZCAN_Transmit(chHandle, &frame, 8));
+}
+
+IGNORE_TEST(sdk_send_receive, 04_receive)
+{
+    uint8_t baudStatus = ZCAN_SetValue(CAN, "0/baud_rate", "1000000");
+    chHandle = CAN;
+    ZCAN_StartCAN(chHandle);
+    ZCAN_Transmit_Data frame = zcan.MakeFrame(sampleData, 8);
+    ZCAN_Transmit(chHandle, &frame, 8);
+    ZCAN_Receive_Data receiveFrame;
+    CHECK_EQUAL(STATUS_OK, ZCAN_Receive(chHandle, &receiveFrame, 8, 100));
+}
+
+TEST_GROUP(custom_transmission)
+{
+    DEVICE_HANDLE CAN;
+    CHANNEL_HANDLE chHandle;
+    ZCAN zcan;
+    int deviceID = 12;
+    BYTE sampleData[8] = { 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7, 0xF8 };
+    void setup()
+    {
+        CAN = ZCAN_OpenDevice(deviceID, 0, 0);
+    }
+    void teardown()
+    {
+        ZCAN_CloseDevice(CAN);
+        CAN = INVALID_DEVICE_HANDLE;
+        chHandle = INVALID_CHANNEL_HANDLE;
+    }
+};
+
+TEST(custom_transmission, 01_send_custom_packet)
+{
+    ZCAN_SetValue(CAN, "0/baud_rate", "500000");
+    CHANNEL_HANDLE chHandle = zcan.InitCan(CAN);
+    ZCAN_StartCAN(chHandle);
+    BYTE customData[7] = { 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7 };
+    CHECK_EQUAL(7, zcan.SendMessage(CAN, customData, 7));
+}

@@ -30,51 +30,24 @@ ZCAN_Transmit_Data ZCAN::MakeFrame(const BYTE* data, int size)
 UINT ZCAN::SendSampleMessage(CHANNEL_HANDLE chHandle)
 {
     BYTE data[] = { 1, 2, 3, 4, 5, 6, 7, 8 };
-    //ZCAN_Transmit_Data frame = MakeFrame(data, 8);
-    UINT sent = 8;
-    //UINT sent = ZCAN_Transmit(chHandle, &frame, 8);
-    //uintptr_t intptr = (uintptr_t)chHandle;
-    //unsigned long channelValue = (intptr >> 16) & 0xFF;
-    std::cout << sent << std::endl;
-    std::cout << chHandle << std::endl;
-    //std::cout << "Successfully sent " << sent << " bytes on channel 0x" << std::hex << chHandle << std::endl;
+    ZCAN_Transmit_Data frame = MakeFrame(data, 8);
+    UINT sent = ZCAN_Transmit(chHandle, &frame, 8);
+    uintptr_t intptr = (uintptr_t)chHandle;
+    unsigned long channelValue = (intptr >> 16) & 0xFF;
+    //std::cout << "sent " << sent << " bytes on channel 0x" << std::hex << channelValue << std::endl;
     return sent;
 }
 
-//ZCAN_Transmit_Data* ZCAN::SendMessage(CHANNEL_HANDLE chHandle, const BYTE* data)
-//{
-//    ZCAN_Transmit_Data frame;
-//    memset(&frame, 0, sizeof(frame));
-//    frame.frame.can_id = MAKE_CAN_ID(0x100, 1, 0, 0);
-//    frame.frame.can_dlc = 8;
-//    for (int i = 0; i < 8; i++)
-//    {
-//        frame.frame.data[i] = data[i];
-//    }
-//    UINT sent = ZCAN_Transmit(chHandle, &frame, 8);
-//    uintptr_t intptr = (uintptr_t)chHandle;
-//    unsigned long channelValue = (intptr >> 16) & 0xFF;
-//    std::cout << "Successfully sent " << sent << " bytes on channel 0x" << std::hex << channelValue << std::endl;
-//    return &frame;
-//}
-//
-//ZCAN_Transmit_Data* ZCAN::SendMessage(CHANNEL_HANDLE chHandle, const BYTE* data, int size)
-//{
-//    ZCAN_Transmit_Data frame;
-//    memset(&frame, 0, sizeof(frame));
-//    frame.frame.can_id = MAKE_CAN_ID(0x100, 1, 0, 0);
-//    frame.frame.can_dlc = size;
-//    for (int i = 0; i < size; i++)
-//    {
-//        frame.frame.data[i] = data[i];
-//    }
-//    UINT sent = ZCAN_Transmit(chHandle, &frame, size);
-//    uintptr_t intptr = (uintptr_t)chHandle;
-//    unsigned long channelValue = (intptr >> 16) & 0xFF;
-//    std::cout << "Successfully sent " << sent << " bytes on channel 0x" << std::hex << channelValue << std::endl;
-//    return &frame;
-//}
-//
+UINT ZCAN::SendMessage(CHANNEL_HANDLE chHandle, const BYTE* data, int size)
+{
+    ZCAN_Transmit_Data frame = MakeFrame(data, size);
+    UINT sent = ZCAN_Transmit(chHandle, &frame, size);
+    uintptr_t intptr = (uintptr_t)chHandle;
+    unsigned long channelValue = (intptr >> 16) & 0xFF;
+    std::cout << "sent " << sent << " bytes on channel 0x" << std::hex << channelValue << std::endl;
+    return sent;
+}
+
 //ZCAN_Receive_Data* ZCAN::ReceiveCanMessage(CHANNEL_HANDLE chHandle)
 //{
 //    int nChnl = (unsigned int)chHandle & 0x000000FF;
