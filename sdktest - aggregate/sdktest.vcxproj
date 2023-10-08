@@ -24,6 +24,7 @@
     <ProjectGuid>{66a89b29-dad4-472d-920f-1ff4c3195423}</ProjectGuid>
     <RootNamespace>sdktest</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>StressTester</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -143,7 +144,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="sdktest.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="test.cpp" />
     <ClCompile Include="zcan.cpp" />
   </ItemGroup>
@@ -153,6 +154,9 @@
     <ClInclude Include="typedef.h" />
     <ClInclude Include="zcan.h" />
     <ClInclude Include="zlgcan.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
