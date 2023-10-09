@@ -27,7 +27,7 @@ def search_all_buses():
     for i in range(1, 48):
         if i == 46 or i == 45:
             continue
-        dev_handle = open_usbcan_on_bus(i)
+        open_usbcan_on_bus(i)
 
 
 def open_channel(dev_handle, channel):
@@ -86,14 +86,8 @@ def receive_can(chn_handle):
             )
 
 
-if __name__ == "__main__":
-    if platform.python_version() >= "3.8.0":
-        import os
-
-        os.add_dll_directory(os.getcwd())
-    # search_all_buses()
-    # dev_handle = open_usbcanII()
-    dev_handle = open_usbcan_on_bus(0xC0)
+def sample_send_receive_on_bus(bus):
+    dev_handle = open_usbcan_on_bus(bus)
     chn0_handle = open_channel(dev_handle, 0)
 
     data = [0, 1, 2, 3, 4, 5, 6, 0xFF]
@@ -110,3 +104,17 @@ if __name__ == "__main__":
     zcanlib.ResetCAN(chn0_handle)
     zcanlib.CloseDevice(dev_handle)
     print("Finish")
+
+
+if __name__ == "__main__":
+    if platform.python_version() >= "3.8.0":
+        import os
+
+        os.add_dll_directory(os.getcwd())
+    # search_all_buses()
+    # dev_handle = open_usbcanII()
+    sample_send_receive_on_bus(0xC0000)
+    sample_send_receive_on_bus(0x190000)
+    sample_send_receive_on_bus(0x1A0000)
+    sample_send_receive_on_bus(0x240000)
+    sample_send_receive_on_bus(0x2F0000)
