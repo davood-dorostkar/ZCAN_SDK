@@ -18,8 +18,9 @@ def open_usbcanII():
 def open_usbcan_on_bus(bus):
     dhandle = zcanlib.OpenDevice(bus, 0, 0)
     if dhandle == INVALID_DEVICE_HANDLE:
+        print("bus open failed: " + str(bus))
         return
-    print("device handle: " + str(hex(dhandle)))
+    print("opened device handle: " + str(hex(dhandle)))
     return dhandle
 
 
@@ -88,14 +89,15 @@ def receive_can(chn_handle):
 
 def sample_send_receive_on_bus(bus):
     dev_handle = open_usbcan_on_bus(bus)
+    if dev_handle == INVALID_DEVICE_HANDLE:
+        return
     chn0_handle = open_channel(dev_handle, 0)
 
     data = [0, 1, 2, 3, 4, 5, 6, 0xFF]
-    for i in range(2):
-        transmit_can(chn0_handle, 0, 0x100, data, 6)
-        transmit_can(chn0_handle, 1, 0x12345678, data, 8)
-        data[0] = data[0] + 1
-        time.sleep(0.1)
+    transmit_can(chn0_handle, 0, 0x100, data, 6)
+    transmit_can(chn0_handle, 1, 0x12345678, data, 8)
+    data[0] = data[0] + 1
+    time.sleep(0.1)
 
     zcanlib.ClearBuffer(chn0_handle)
     time.sleep(1)
@@ -111,10 +113,10 @@ if __name__ == "__main__":
         import os
 
         os.add_dll_directory(os.getcwd())
-    search_all_buses()
+    # search_all_buses()
     # dev_handle = open_usbcanII()
-    # sample_send_receive_on_bus(0xC0)
-    # sample_send_receive_on_bus(0x19)
-    # sample_send_receive_on_bus(0x1A)
-    # sample_send_receive_on_bus(0x24)
-    # sample_send_receive_on_bus(0x2F)
+    sample_send_receive_on_bus(0xC)
+    sample_send_receive_on_bus(0x19)
+    sample_send_receive_on_bus(0x1A)
+    sample_send_receive_on_bus(0x24)
+    sample_send_receive_on_bus(0x2F)
