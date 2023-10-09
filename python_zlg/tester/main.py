@@ -111,10 +111,10 @@ if __name__ == "__main__":
         import os
 
         os.add_dll_directory(os.getcwd())
-    # search_all_buses()
+    search_all_buses()
     # dev_handle = open_usbcanII()
-    sample_send_receive_on_bus(0xC0000)
-    sample_send_receive_on_bus(0x190000)
-    sample_send_receive_on_bus(0x1A0000)
-    sample_send_receive_on_bus(0x240000)
-    sample_send_receive_on_bus(0x2F0000)
+    # sample_send_receive_on_bus(0xC0)
+    # sample_send_receive_on_bus(0x19)
+    # sample_send_receive_on_bus(0x1A)
+    # sample_send_receive_on_bus(0x24)
+    # sample_send_receive_on_bus(0x2F)
