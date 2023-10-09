@@ -19,7 +19,7 @@ def open_usbcan_on_bus(bus):
     dhandle = zcanlib.OpenDevice(bus, 0, 0)
     if dhandle == INVALID_DEVICE_HANDLE:
         print("bus open failed: " + str(bus))
-        return
+        return INVALID_DEVICE_HANDLE
     print("opened device handle: " + str(hex(dhandle)))
     return dhandle
 
