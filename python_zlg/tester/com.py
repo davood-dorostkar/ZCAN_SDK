@@ -54,11 +54,6 @@ DEVICE_LIST = [
 ]
 
 
-class HANDLES:
-    INVALID_DEVICE_HANDLE
-    INVALID_CHANNEL_HANDLE
-
-
 class COM:
     BLFMsgs = []
     db = cantools.db.Database
@@ -96,7 +91,6 @@ class COM:
     def SearchAllBuses(self):
         for i in DEVICE_LIST:
             if i != ZCAN_CANSCOPE and i != ZCAN_CLOUD:
-                print(i)
                 self.OpenUsbCanOnBus(i)
 
     def OpenChannel(self, dev_handle, channel):
@@ -126,7 +120,7 @@ class COM:
             for j in range(msgs[i].frame.can_dlc):
                 msgs[i].frame.data[j] = data[j]
         ret = self.zcanlib.Transmit(chn_handle, msgs, transmit_num)
-        print(ret)
+        # print(ret)
 
     def ReceiveCan(self, chn_handle):
         rcv_num = self.zcanlib.GetReceiveNum(chn_handle, ZCAN_TYPE_CAN)
