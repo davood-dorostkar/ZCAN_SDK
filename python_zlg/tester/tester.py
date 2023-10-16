@@ -27,9 +27,9 @@ class Tester(COM):
         time.sleep(0.1)
         super().zcanlib.ClearBuffer(self.chn_handle)
         time.sleep(0.1)
-        super().ReceiveCan(self.chn_handle)
+        super().ReceiveAndPrintCan(self.chn_handle)
 
-    def SendCanFromBLC(self):
+    def SendCanFromBLC(self, interval=0.1):
         for msg in self.BLFMsgs:
             super().TransmitCan(
                 chn_handle=self.chn_handle,
@@ -38,7 +38,59 @@ class Tester(COM):
                 data=msg.data,
                 len=msg.dlc,
             )
-            time.sleep(0.1)
+            time.sleep(interval)
+
+    def RampUpCPU(self):
+        # TODO: must be implemented
+        rampUpRequest = [0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7]
+        # TODO: must be implemented
+        rampUpResponseOK = [0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7]
+        super().TransmitCan(self.chn_handle, 0, 0x100, rampUpRequest, 8)
+
+        time.sleep(0.1)
+        super().zcanlib.ClearBuffer(self.chn_handle)
+        time.sleep(0.1)
+        msgs = super().ReceiveCan(self.chn_handle)
+        for msg in msgs:
+            if msg.frame.data == rampUpResponseOK:
+                return True
+            else:
+                return False
+
+    def RampDownCPU(self):
+        # TODO: must be implemented
+        rampDownRequest = [0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7]
+        # TODO: must be implemented
+        rampDownResponseOK = [0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7]
+        super().TransmitCan(self.chn_handle, 0, 0x100, rampDownRequest, 8)
+
+        time.sleep(0.1)
+        super().zcanlib.ClearBuffer(self.chn_handle)
+        time.sleep(0.1)
+        msgs = super().ReceiveCan(self.chn_handle)
+        for msg in msgs:
+            if msg.frame.data == rampDownResponseOK:
+                return True
+            else:
+                return False
+
+    # TODO: must be implemented
+    def CanTransferNormalPackets(self):
+        pass
+
+    # TODO: must be implemented
+    def IsCPULoadNormal(self):
+        pass
+
+    # TODO: must be implemented
+    def ElasticityCheck(self):
+        print("ELASTICITY CHECK:")
+        if not self.CanTransferNormalPackets():
+            print("Failed! Cannot transfer regular packets")
+            return
+        if not self.IsCPULoadNormal():
+            print("Failed! CPU load unnormal")
+            return
 
     def Scenario1(self):
         print("\nTESTING SCENARIO 1\n=================")

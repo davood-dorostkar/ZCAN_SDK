@@ -122,7 +122,7 @@ class COM:
         ret = self.zcanlib.Transmit(chn_handle, msgs, transmit_num)
         # print(ret)
 
-    def ReceiveCan(self, chn_handle):
+    def ReceiveAndPrintCan(self, chn_handle):
         rcv_num = self.zcanlib.GetReceiveNum(chn_handle, ZCAN_TYPE_CAN)
         if rcv_num:
             print("Receive CAN message number: %d" % rcv_num)
@@ -146,3 +146,20 @@ class COM:
                         ),
                     )
                 )
+
+    class Message:
+        def __init__(self, frame_data):
+            self.frame = COM.Frame(frame_data)
+
+    class Frame:
+        def __init__(self, data):
+            self.data = data
+
+    def ReceiveCan(self, chn_handle):
+        rcv_num = self.zcanlib.GetReceiveNum(chn_handle, ZCAN_TYPE_CAN)
+        # TODO: just for testing
+        rcv_msg = [COM.Message([0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7])]
+        return rcv_msg
+        if rcv_num:
+            rcv_msg, rcv_num = self.zcanlib.Receive(chn_handle, rcv_num)
+        return rcv_msg

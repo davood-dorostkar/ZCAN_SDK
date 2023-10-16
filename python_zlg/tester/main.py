@@ -23,7 +23,25 @@ if __name__ == "__main__":
 
     elif sys.argv[1] == "test":
         com = Tester(bus[0])
-        com.Scenario3()
+        sequences = [
+            com.RampUpCPU,
+            com.Scenario1,
+            com.Scenario2,
+            com.Scenario3,
+            com.RampDownCPU,
+            com.ElasticityCheck,
+        ]
+
+        for step in sequences:
+            try:
+                if not step():
+                    print(f"\n{step.__name__} failed")
+                    break
+                else:
+                    print(f"\n{step.__name__} successful")
+            except Exception as e:
+                print(f"Exception in {step.__name__}: {str(e)}")
+                break
 
     else:
         file = sys.argv[1]
