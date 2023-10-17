@@ -47,6 +47,7 @@ if __name__ == "__main__":
         file = sys.argv[1]
         com = Tester(bus[0])
         com.LoadBLF(file)
-        com.SendCanFromBLC()
+        # com.SendCanFromBLC()
+        com.PrintBLF()
 
     com.End()

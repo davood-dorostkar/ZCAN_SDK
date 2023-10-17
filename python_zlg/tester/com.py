@@ -1,3 +1,4 @@
+from pickletools import bytes1
 from zlgcan import *
 import cantools
 from can.io import BLFReader
@@ -63,14 +64,30 @@ class COM:
         pass
 
     def LoadBLF(self, filename):
+        self.BLFMsgs = BLFReader(filename)
+        print("BLF file loaded")
+        return
+        # alternative
         log = BLFReader(filename)
         for msg in log:
             self.BLFMsgs.append(msg)
             break
-        print("BLF file loaded")
 
     def LoadDBC(self, filename):
         self.db = cantools.db.load_file(filename)
+
+    def PrintBLF(self):
+        for message in self.BLFMsgs:
+            print(
+                f"Tstamp: {message.timestamp}",
+                f"\tID: {message.arbitration_id}",
+                f"\tExtended: {message.is_extended_id}",
+                f"\tRemote Frame: {message.is_remote_frame}",
+                f"\tRX: {message.is_rx}",
+                f"\tDLC: {message.dlc}",
+                f" \tData: {'x'.join([f'{b:02X}' for b in message.data])}",
+                f"\tChannel: {message.channel}",
+            )
 
     def OpenUsbCanII(self):
         dhandle = self.zcanlib.OpenDevice(ZCAN_USBCAN2, 0, 0)
