@@ -1,5 +1,7 @@
 import time
 import random
+
+from matplotlib.pyplot import flag
 from zlgcan import *
 from com import COM, DEVICE_LIST
 
@@ -7,6 +9,7 @@ from com import COM, DEVICE_LIST
 class Tester(COM):
     dev_handle = INVALID_DEVICE_HANDLE
     chn_handle = INVALID_CHANNEL_HANDLE
+    packetsLog = {}
 
     def __init__(self, bus, channel=0) -> None:
         self.dev_handle = super().OpenUsbCanOnBus(bus)
@@ -19,7 +22,7 @@ class Tester(COM):
         super().zcanlib.CloseDevice(self.dev_handle)
         print("Finish")
 
-    def SampleSendReceiveOnBus(self):
+    def SampleSendReceive(self):
         data = [0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7]
         super().TransmitCan(self.chn_handle, 0, 0x100, data, 8)
         # super().TransmitCan(self.chn_handle, 1, 0x12345678, data, 8)
@@ -50,7 +53,7 @@ class Tester(COM):
         time.sleep(0.1)
         super().zcanlib.ClearBuffer(self.chn_handle)
         time.sleep(0.1)
-        msgs = super().ReceiveCan(self.chn_handle)
+        msgs, _ = super().ReceiveCan(self.chn_handle)
         for msg in msgs:
             if msg.frame.data == rampUpResponseOK:
                 return True
@@ -67,7 +70,7 @@ class Tester(COM):
         time.sleep(0.1)
         super().zcanlib.ClearBuffer(self.chn_handle)
         time.sleep(0.1)
-        msgs = super().ReceiveCan(self.chn_handle)
+        msgs, _ = super().ReceiveCan(self.chn_handle)
         for msg in msgs:
             if msg.frame.data == rampDownResponseOK:
                 return True
@@ -76,21 +79,40 @@ class Tester(COM):
 
     # TODO: must be implemented
     def CanTransferNormalPackets(self):
-        pass
+        return True
 
     # TODO: must be implemented
     def IsCPULoadNormal(self):
-        pass
+        return True
 
     # TODO: must be implemented
     def ElasticityCheck(self):
-        print("ELASTICITY CHECK:")
+        print("\nELASTICITY CHECK:\n=================")
         if not self.CanTransferNormalPackets():
             print("Failed! Cannot transfer regular packets")
-            return
+            return False
         if not self.IsCPULoadNormal():
             print("Failed! CPU load unnormal")
-            return
+            return False
+        return True
+
+    def DroppedPacketsExist(self):
+        droppedFlag = False
+        for key, value in self.packetsLog.items():
+            if value[0] == value[1]:
+                continue
+            else:
+                print(
+                    f"Packets dropped in {key};\tsent: {value[0]};\treceived: {value[1]}"
+                )
+                droppedFlag = True
+        return True if droppedFlag else False
+
+    def RobustnessCheck(self):
+        print("\nROBUSTNESS CHECK:\n=================")
+        if self.DroppedPacketsExist():
+            return False
+        return True
 
     def Scenario1(self):
         print("\nTESTING SCENARIO 1\n=================")
@@ -98,17 +120,28 @@ class Tester(COM):
         dt = 0.010
         start = time.time()
         duration = 20
+        tx = rx = 0
         print("RAMP LOAD ...")
         while dt >= 0.001:
             print(f"dt: {dt}")
             for _ in range(200):
                 super().TransmitCan(self.chn_handle, 0, 0x100, msg, 8)
+                tx += 1
+                super().zcanlib.ClearBuffer(self.chn_handle)
+                _, rcv = super().ReceiveCan(self.chn_handle)
+                rx += rcv
                 time.sleep(dt)
             dt -= 0.001
         print("CONTINUOUS LOAD ...")
         while time.time() - start < duration:
             super().TransmitCan(self.chn_handle, 0, 0x100, msg, 8)
+            tx += 1
+            super().zcanlib.ClearBuffer(self.chn_handle)
+            _, rcv = super().ReceiveCan(self.chn_handle)
+            rx += rcv
+        self.packetsLog["Scenario1"] = [tx, rx]
         print("Test duration: ", time.time() - start)
+        return True
 
     def Scenario2(self):
         print("\nTESTING SCENARIO 2\n=================")
@@ -120,12 +153,19 @@ class Tester(COM):
         dt = 0.01
         start = time.time()
         duration = 10
+        tx = rx = 0
         print("CYCLIC LOAD ...")
         while time.time() - start < duration:
             for msg in msgs:
                 super().TransmitCan(self.chn_handle, 0, 0x100, msg, 8)
+                tx += 1
+                super().zcanlib.ClearBuffer(self.chn_handle)
+                _, rcv = super().ReceiveCan(self.chn_handle)
+                rx += rcv
                 time.sleep(dt)
+        self.packetsLog["Scenario2"] = [tx, rx]
         print("Test duration: ", time.time() - start)
+        return True
 
     def Scenario3(self):
         print("\nTESTING SCENARIO 3\n=================")
@@ -137,15 +177,26 @@ class Tester(COM):
         dt = 0.01
         start = time.time()
         duration = 10
+        tx = rx = 0
         print("RAMP CYCLIC LOAD ...")
         while dt >= 0.001:
             print(f"dt: {dt}")
             for msg in msgs:
                 super().TransmitCan(self.chn_handle, 0, 0x100, msg, 8)
+                tx += 1
+                super().zcanlib.ClearBuffer(self.chn_handle)
+                _, rcv = super().ReceiveCan(self.chn_handle)
+                rx += rcv
                 time.sleep(dt)
             dt -= 0.001
         print("CONTINUOUS CYCLIC LOAD ...")
         while time.time() - start < duration:
             super().TransmitCan(self.chn_handle, 0, 0x100, msg, 8)
+            tx += 1
+            super().zcanlib.ClearBuffer(self.chn_handle)
+            _, rcv = super().ReceiveCan(self.chn_handle)
+            rx += rcv
             time.sleep(dt)
+        self.packetsLog["Scenario3"] = [tx, rx]
         print("Test duration: ", time.time() - start)
+        return True

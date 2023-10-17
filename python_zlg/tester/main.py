@@ -13,32 +13,30 @@ if __name__ == "__main__":
         print("\n=== To replay BLF file use: python main.py <sample.blf> ===")
         print("=== Running default operation ===\n")
 
+        # com.SearchAllBuses()
         for i in bus:
             com = Tester(i)
-            com.SampleSendReceiveOnBus()
-
-        # com.SearchAllBuses()
-        # dev_handle = com.OpenUsbCanII()
-        # com.SampleSendReceiveOnBus()
+            com.SampleSendReceive()
 
     elif sys.argv[1] == "test":
         com = Tester(bus[0])
         sequences = [
             com.RampUpCPU,
             com.Scenario1,
-            com.Scenario2,
-            com.Scenario3,
+            # com.Scenario2,
+            # com.Scenario3,
             com.RampDownCPU,
             com.ElasticityCheck,
+            com.RobustnessCheck,
         ]
 
         for step in sequences:
             try:
                 if not step():
-                    print(f"\n{step.__name__} failed")
+                    print(f"{step.__name__} failed")
                     break
                 else:
-                    print(f"\n{step.__name__} successful")
+                    print(f"{step.__name__} successful")
             except Exception as e:
                 print(f"Exception in {step.__name__}: {str(e)}")
                 break
