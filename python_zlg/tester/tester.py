@@ -32,6 +32,17 @@ class Tester(COM):
         time.sleep(0.1)
         super().ReceiveAndPrintCan(self.chn_handle)
 
+    def LoopbackSend(self, interval):
+        data = [0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7]
+        while 1:
+            super().TransmitCan(self.chn_handle, 0, 0x100, data, 8)
+            print(f"Sent Data: {data}")
+            time.sleep(interval)
+
+    def LoopbackReceive(self):
+        while 1:
+            super().ReceiveAndPrintCan(self.chn_handle)
+
     def SendCanFromBLC(self, interval=0.1):
         for msg in self.BLFMsgs:
             super().TransmitCan(
