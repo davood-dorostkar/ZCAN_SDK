@@ -114,72 +114,78 @@ class Tester(COM):
             return False
         return True
 
+    def RampSingleLoad(self, dt, dtEnd, step, count, msg):
+        print("RAMP LOAD ...")
+        tx = rx = 0
+        while dt >= dtEnd:
+            print(f"dt: {dt}")
+            for _ in range(count):
+                super().TransmitCan(self.chn_handle, 0, 0x100, msg, 8)
+                tx += 1
+                super().zcanlib.ClearBuffer(self.chn_handle)
+                _, rcv = super().ReceiveCan(self.chn_handle)
+                rx += rcv
+                time.sleep(dt)
+            dt -= step
+        return tx, rx
+
+    def ContinuouseSingleLoad(self, start, duration, msg):
+        print("CONTINUOUS LOAD ...")
+        tx = rx = 0
+        while time.time() - start < duration:
+            super().TransmitCan(self.chn_handle, 0, 0x100, msg, 8)
+            tx += 1
+            super().zcanlib.ClearBuffer(self.chn_handle)
+            _, rcv = super().ReceiveCan(self.chn_handle)
+            rx += rcv
+        return tx, rx
+
     def Scenario1(self):
         print("\nTESTING SCENARIO 1\n=================")
         msg = [0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7]
-        dt = 0.010
         start = time.time()
-        duration = 20
+        result = (0, 0)
+        result1 = self.RampSingleLoad(0.01, 0.001, 0.001, 200, msg)
+        result2 = self.ContinuouseSingleLoad(start, 20, msg)
+        results = [result1, result2]
+        result = tuple(sum(x) for x in zip(*results))
+        self.packetsLog["Scenario1"] = result
+        print("Test duration: ", time.time() - start)
+        return True
+
+    def MakeRandomMsgs(self, num):
+        msgs = []
+        for _ in range(num):
+            msg = [random.randint(0, 255) for _ in range(8)]
+            msgs.append(msg)
+        return msgs
+
+    def CyclicLoad(self, start, duration, dt, msgs):
+        print("CYCLIC LOAD ...")
         tx = rx = 0
-        print("RAMP LOAD ...")
-        while dt >= 0.001:
-            print(f"dt: {dt}")
-            for _ in range(200):
+        while time.time() - start < duration:
+            for msg in msgs:
                 super().TransmitCan(self.chn_handle, 0, 0x100, msg, 8)
                 tx += 1
                 super().zcanlib.ClearBuffer(self.chn_handle)
                 _, rcv = super().ReceiveCan(self.chn_handle)
                 rx += rcv
                 time.sleep(dt)
-            dt -= 0.001
-        print("CONTINUOUS LOAD ...")
-        while time.time() - start < duration:
-            super().TransmitCan(self.chn_handle, 0, 0x100, msg, 8)
-            tx += 1
-            super().zcanlib.ClearBuffer(self.chn_handle)
-            _, rcv = super().ReceiveCan(self.chn_handle)
-            rx += rcv
-        self.packetsLog["Scenario1"] = [tx, rx]
-        print("Test duration: ", time.time() - start)
-        return True
+        return tx, rx
 
     def Scenario2(self):
         print("\nTESTING SCENARIO 2\n=================")
-        msgs = []
-        for _ in range(100):
-            msg = [random.randint(0, 255) for _ in range(8)]
-            msgs.append(msg)
-
-        dt = 0.01
+        msgs = self.MakeRandomMsgs(100)
         start = time.time()
-        duration = 10
-        tx = rx = 0
-        print("CYCLIC LOAD ...")
-        while time.time() - start < duration:
-            for msg in msgs:
-                super().TransmitCan(self.chn_handle, 0, 0x100, msg, 8)
-                tx += 1
-                super().zcanlib.ClearBuffer(self.chn_handle)
-                _, rcv = super().ReceiveCan(self.chn_handle)
-                rx += rcv
-                time.sleep(dt)
-        self.packetsLog["Scenario2"] = [tx, rx]
+        result = self.CyclicLoad(start, 10, 0.01, msgs)
+        self.packetsLog["Scenario2"] = result
         print("Test duration: ", time.time() - start)
         return True
 
-    def Scenario3(self):
-        print("\nTESTING SCENARIO 3\n=================")
-        msgs = []
-        for _ in range(100):
-            msg = [random.randint(0, 255) for _ in range(8)]
-            msgs.append(msg)
-
-        dt = 0.01
-        start = time.time()
-        duration = 10
-        tx = rx = 0
+    def RampCyclicLoad(self, dt, dtEnd, step, msgs):
         print("RAMP CYCLIC LOAD ...")
-        while dt >= 0.001:
+        tx = rx = 0
+        while dt >= dtEnd:
             print(f"dt: {dt}")
             for msg in msgs:
                 super().TransmitCan(self.chn_handle, 0, 0x100, msg, 8)
@@ -188,15 +194,30 @@ class Tester(COM):
                 _, rcv = super().ReceiveCan(self.chn_handle)
                 rx += rcv
                 time.sleep(dt)
-            dt -= 0.001
+            dt -= step
+        return tx, rx
+
+    def ContinouseCyclicLoad(self, start, duration, dt, msgs):
         print("CONTINUOUS CYCLIC LOAD ...")
+        tx = rx = 0
         while time.time() - start < duration:
-            super().TransmitCan(self.chn_handle, 0, 0x100, msg, 8)
-            tx += 1
-            super().zcanlib.ClearBuffer(self.chn_handle)
-            _, rcv = super().ReceiveCan(self.chn_handle)
-            rx += rcv
-            time.sleep(dt)
-        self.packetsLog["Scenario3"] = [tx, rx]
+            for msg in msgs:
+                super().TransmitCan(self.chn_handle, 0, 0x100, msg, 8)
+                tx += 1
+                super().zcanlib.ClearBuffer(self.chn_handle)
+                _, rcv = super().ReceiveCan(self.chn_handle)
+                rx += rcv
+                time.sleep(dt)
+        return tx, rx
+
+    def Scenario3(self):
+        print("\nTESTING SCENARIO 3\n=================")
+        msgs = self.MakeRandomMsgs(100)
+        start = time.time()
+        result1 = self.RampCyclicLoad(0.01, 0.001, 0.001, msgs)
+        result2 = self.ContinouseCyclicLoad(start, 10, 0.01, msgs)
+        results = [result1, result2]
+        result = tuple(sum(x) for x in zip(*results))
+        self.packetsLog["Scenario3"] = result
         print("Test duration: ", time.time() - start)
         return True

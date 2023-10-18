@@ -23,8 +23,8 @@ if __name__ == "__main__":
         sequences = [
             com.RampUpCPU,
             com.Scenario1,
-            # com.Scenario2,
-            # com.Scenario3,
+            com.Scenario2,
+            com.Scenario3,
             com.RampDownCPU,
             com.ElasticityCheck,
             com.RobustnessCheck,
