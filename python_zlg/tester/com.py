@@ -2,6 +2,7 @@ from pickletools import bytes1
 from zlgcan import *
 import cantools
 from can.io import BLFReader
+import time
 
 DEVICE_LIST = [
     ZCAN_PCI5121,
@@ -76,18 +77,21 @@ class COM:
     def LoadDBC(self, filename):
         self.db = cantools.db.load_file(filename)
 
-    def PrintBLF(self):
-        for message in self.BLFMsgs:
-            print(
-                f"Tstamp: {message.timestamp}",
-                f"\tID: {message.arbitration_id}",
-                f"\tExtended: {message.is_extended_id}",
-                f"\tRemote Frame: {message.is_remote_frame}",
-                f"\tRX: {message.is_rx}",
-                f"\tDLC: {message.dlc}",
-                f" \tData: {'x'.join([f'{b:02X}' for b in message.data])}",
-                f"\tChannel: {message.channel}",
-            )
+    def PrintBLFItem(self, msg):
+        print(
+            f"Tstamp: {msg.timestamp}",
+            f"\tID: {msg.arbitration_id}",
+            f"\tExtended: {msg.is_extended_id}",
+            f"\tRemote Frame: {msg.is_remote_frame}",
+            f"\tRX: {msg.is_rx}",
+            f"\tDLC: {msg.dlc}",
+            f" \tData: {'x'.join([f'{b:02X}' for b in msg.data])}",
+            f"\tChannel: {msg.channel}",
+        )
+
+    def PrintAllBLF(self):
+        for msg in self.BLFMsgs:
+            self.PrintBLFItem(msg)
 
     def OpenUsbCanII(self):
         dhandle = self.zcanlib.OpenDevice(ZCAN_USBCAN2, 0, 0)
@@ -123,8 +127,8 @@ class COM:
         self.zcanlib.StartCAN(chn_handle)
         return chn_handle
 
-    def TransmitCan(self, chn_handle, stdorext, id, data, len):
-        transmit_num = 1
+    def TransmitCan(self, chn_handle, stdorext, id, data, length):
+        transmit_num = (length + 7) // 8  # Calculate the number of frames needed
         msgs = (ZCAN_Transmit_Data * transmit_num)()
         for i in range(transmit_num):
             msgs[i].transmit_type = 0
@@ -133,11 +137,14 @@ class COM:
                 msgs[i].frame.eff = 1
             msgs[i].frame.rtr = 0
             msgs[i].frame.can_id = id
-            msgs[i].frame.can_dlc = len
+            if length > 8:
+                msgs[i].frame.can_dlc = 8
+            else:
+                msgs[i].frame.can_dlc = length
             for j in range(msgs[i].frame.can_dlc):
-                msgs[i].frame.data[j] = data[j]
+                msgs[i].frame.data[j] = data[i * 8 + j]
+            length -= 8
         ret = self.zcanlib.Transmit(chn_handle, msgs, transmit_num)
-        # print(ret)
 
     def ReceiveAndPrintCan(self, chn_handle):
         rcv_num = self.zcanlib.GetReceiveNum(chn_handle, ZCAN_TYPE_CAN)

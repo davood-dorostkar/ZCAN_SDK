@@ -39,7 +39,8 @@ if __name__ == "__main__":
             file = sys.argv[2]
             com.LoadBLF(file)
             # com.SendCanFromBLC()
-            com.PrintBLF()
+            # com.PrintAllBLF()
+            com.SendAndPrintBLF(0.1)
             com.End()
 
         elif sys.argv[1] == "loop":

@@ -45,12 +45,24 @@ class Tester(COM):
 
     def SendCanFromBLC(self, interval=0.1):
         for msg in self.BLFMsgs:
-            super().TransmitCan(
+            self.TransmitCan(
                 chn_handle=self.chn_handle,
                 stdorext=msg.is_extended_id,
                 id=msg.arbitration_id,
                 data=msg.data,
-                len=msg.dlc,
+                length=msg.dlc,
+            )
+            time.sleep(interval)
+
+    def SendAndPrintBLF(self, interval):
+        for msg in self.BLFMsgs:
+            self.PrintBLFItem(msg)
+            self.TransmitCan(
+                chn_handle=self.chn_handle,
+                stdorext=msg.is_extended_id,
+                id=msg.arbitration_id,
+                data=msg.data,
+                length=msg.dlc,
             )
             time.sleep(interval)
 
