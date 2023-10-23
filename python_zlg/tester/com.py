@@ -187,3 +187,14 @@ class COM:
         if rcv_num:
             rcv_msg, rcv_num = self.zcanlib.Receive(chn_handle, rcv_num)
         return rcv_msg, rcv_num
+
+
+class SendCan(COM):
+    def __init__(self, db=None):
+        super().__init__()
+        # self.db = self.LoadDBC(db)
+        self.bus = self.OpenUsbCanOnBus(ZCAN_USBCAN1)
+        self.channel = self.OpenChannel(0)
+
+    def send_message(self, message, id):
+        self.TransmitCan(self.channel, 0, id, message, 8)
