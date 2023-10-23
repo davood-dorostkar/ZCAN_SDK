@@ -11,7 +11,9 @@ class Tester(COM):
     chn_handle = INVALID_CHANNEL_HANDLE
     packetsLog = {}
 
-    def __init__(self, bus, channel=0) -> None:
+    def __init__(self, bus=None, channel=0) -> None:
+        if bus == None:
+            return
         self.dev_handle = super().OpenUsbCanOnBus(bus)
         if self.dev_handle == INVALID_DEVICE_HANDLE:
             return

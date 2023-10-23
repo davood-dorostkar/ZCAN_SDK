@@ -33,8 +33,12 @@ if __name__ == "__main__":
                 break
         com.End()
 
+    elif len(sys.argv) == 2 and sys.argv[1] == "search":
+        com = Tester()
+        com.SearchAllBuses()
+
     elif len(sys.argv) == 3:
-        com = Tester(bus[0])
+        com = Tester(c_ulong(47))
         if sys.argv[1] == "f":
             file = sys.argv[2]
             com.LoadBLF(file)

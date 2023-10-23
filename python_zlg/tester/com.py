@@ -104,9 +104,9 @@ class COM:
     def OpenUsbCanOnBus(self, bus):
         dhandle = self.zcanlib.OpenDevice(bus, 0, 0)
         if dhandle == INVALID_DEVICE_HANDLE:
-            print("bus open failed: " + str(bus))
+            print("bus open failed: ", bus)
             return INVALID_DEVICE_HANDLE
-        print("opened device handle: " + str(hex(dhandle)))
+        print("opened device : ", bus)
         return dhandle
 
     def SearchAllBuses(self):
